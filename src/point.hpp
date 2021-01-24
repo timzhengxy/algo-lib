@@ -72,4 +72,26 @@ struct Polygon {
         return abs(res);
     }
 
+    enum Position {Interior, Boundary, Exterior};
+
+    Position where(const Point<T>& p) const {
+        T xr = 0;
+        for (int i = 0; i < n; i++) {
+            if (p == v[i]) return Boundary;
+            xr = max(xr, v[i].x + 1);
+            int j = (i == n - 1 ? 0 : i + 1);
+            if (direction(v[i], v[j], p) == 0 && Seg<T>(v[i], v[j]).contains(p)) return Boundary;
+        }
+
+        bool in = false;
+        Seg<T> ray(p, Point(xr, p.y + 1));
+        for (int i = 0; i < n; i++) {
+            int j = (i == n - 1 ? 0 : i + 1);
+            Seg<T> side(v[i], v[j]);
+            if (intersect(ray, side)) in = !in;
+        }
+        if (in) return Interior;
+        return Exterior;
+    }
+
 };
