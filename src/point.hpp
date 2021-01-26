@@ -159,7 +159,7 @@ struct Polygon {
     
     Polygon(const vector<Point<T>>& _v) : n((int)_v.size()), v(_v) {}
 
-    T area() const {
+    T doubleArea() const {
         T res = 0;
         for (int i = 2; i < n; i++) {
             res -= direction(v[0], v[i - 1], v[i]);
