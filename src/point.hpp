@@ -29,6 +29,32 @@ struct Point {
     
     friend T cross(const Point& p1, const Point& p2) {return p1.x * p2.y - p2.x * p1.y;}
     friend T direction(const Point& p1, const Point& p2, const Point& p3) {return cross(p3 - p1, p2 - p1);}
+    friend vector<Point<T>> graham(vector<Point<T>> v) {
+        int n = (int)v.size();
+        sort(v.begin(), v.end(), [](const Point<T>& p1, const Point<T>& p2) {
+            if (p1.x != p2.x) return p1.x < p2.x;
+            return p1.y < p2.y;
+        });
+
+        vector<Point<T>> uphull;
+        for (int i = 0; i < n; i++) {
+            while ((int)uphull.size() >= 2 &&
+                   direction(uphull.end()[-2], uphull.end()[-1], v[i]) <= 0)
+                uphull.pop_back();
+            uphull.push_back(v[i]);
+        }
+
+        vector<Point<T>> downhull;
+        for (int i = n - 1; i >= 0; i--) {
+            while ((int)downhull.size() >= 2 &&
+                   direction(downhull.end()[-2], downhull.end()[-1], v[i]) <= 0)
+                downhull.pop_back();
+            downhull.push_back(v[i]);
+        }
+
+        uphull.insert(uphull.end(), downhull.begin() + 1, downhull.end() - 1);
+        return uphull;
+    }
 
 };
 
@@ -155,30 +181,6 @@ struct Polygon {
                 in = !in;
         }
         return in ? Interior : Exterior;
-    }
-
-    vector<Point<T>> graham() {
-        sort(v.begin(), v.end(), [](const Point<T>& p1, const Point<T>& p2) {
-            if (p1.x != p2.x) return p1.x < p2.x;
-            return p1.y < p2.y;
-        });
-
-        vector<Point<T>> uphull;
-        for (int i = 0; i < n; i++) {
-            while ((int)uphull.size() >= 2 && direction(uphull.end()[-2], uphull.end()[-1], v[i]) <= 0)
-                uphull.pop_back();
-            uphull.push_back(v[i]);
-        }
-
-        vector<Point<T>> downhull;
-        for (int i = n - 1; i >= 0; i--) {
-            while ((int)downhull.size() >= 2 && direction(downhull.end()[-2], downhull.end()[-1], v[i]) <= 0)
-                downhull.pop_back();
-            downhull.push_back(v[i]);
-        }
-
-        uphull.insert(uphull.end(), downhull.begin() + 1, downhull.end() - 1);
-        return uphull;
     }
 
 };
