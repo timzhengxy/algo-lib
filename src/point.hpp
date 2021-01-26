@@ -154,8 +154,7 @@ struct Polygon {
                 (v[i].y < p.y && v[j].y >= p.y && direction(v[j], v[i], p) > 0))
                 in = !in;
         }
-        if (in) return Interior;
-        return Exterior;
+        return in ? Interior : Exterior;
     }
 
 };
