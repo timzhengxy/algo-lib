@@ -1,7 +1,9 @@
 #pragma once
 
+#include <iostream>
 #include <vector>
 #include <set>
+#include <limits>
 
 using namespace std;
 
@@ -12,6 +14,9 @@ struct Point {
 
     Point() : x(0), y(0) {}
     Point(T _x, T _y) : x(_x), y(_y) {}
+    friend ostream& operator<<(ostream& os, const Point& p) {return os << '(' << p.x << ',' << p.y << ')';}
+    friend istream& operator>>(istream& is, Point& p) {return is >> p.x >> p.y;}
+    explicit operator pair<T, T>() const {return pair<T, T>(x, y);}
 
     friend bool operator==(const Point& p1, const Point& p2) {return p1.x == p2.x && p1.y == p2.y;}
     friend bool operator!=(const Point& p1, const Point& p2) {return !(p1 == p2);}
@@ -27,16 +32,20 @@ struct Point {
     Point& operator*=(const T& t) {x *= t, y *= t; return *this;}
     Point& operator/=(const T& t) {x /= t, y /= t; return *this;}
     
+    friend T squaredNorm(const Point& p) {return p.x * p.x + p.y * p.y;}
+    friend T squaredDist(const Point& p1, const Point& p2) {return squaredNorm(p1 - p2);}
+    friend T dot(const Point& p1, const Point& p2) {return p1.x * p2.x + p1.y * p2.y;}
     friend T cross(const Point& p1, const Point& p2) {return p1.x * p2.y - p2.x * p1.y;}
     friend T direction(const Point& p1, const Point& p2, const Point& p3) {return cross(p3 - p1, p2 - p1);}
-    friend vector<Point<T>> graham(vector<Point<T>> v) {
+
+    friend vector<Point> graham(vector<Point> v) {
         int n = (int)v.size();
-        sort(v.begin(), v.end(), [](const Point<T>& p1, const Point<T>& p2) {
+        sort(v.begin(), v.end(), [](const Point& p1, const Point& p2) {
             if (p1.x != p2.x) return p1.x < p2.x;
             return p1.y < p2.y;
         });
 
-        vector<Point<T>> uphull;
+        vector<Point> uphull;
         for (int i = 0; i < n; i++) {
             while ((int)uphull.size() >= 2 &&
                    direction(uphull.end()[-2], uphull.end()[-1], v[i]) <= 0)
@@ -44,7 +53,7 @@ struct Point {
             uphull.push_back(v[i]);
         }
 
-        vector<Point<T>> downhull;
+        vector<Point> downhull;
         for (int i = n - 1; i >= 0; i--) {
             while ((int)downhull.size() >= 2 &&
                    direction(downhull.end()[-2], downhull.end()[-1], v[i]) <= 0)
@@ -54,6 +63,51 @@ struct Point {
 
         uphull.insert(uphull.end(), downhull.begin() + 1, downhull.end() - 1);
         return uphull;
+    }
+
+    friend T squaredClosestDC(const vector<Point>& px, const vector<Point>& py) {
+        int n = (int)px.size();
+        if (n == 1) return numeric_limits<T>::max();
+
+        vector<Point> lx(px.begin(), px.begin() + n / 2);
+        vector<Point> rx(px.begin() + n / 2, px.end());
+
+        vector<Point> ly, ry;
+        for (const Point& p : py) {
+            if (pair<T, T>(p) < pair<T, T>(lx.back()))
+                ly.push_back(p);
+            else if (pair<T, T>(p) > pair<T, T>(lx.back()))
+                ry.push_back(p);
+        }
+        while ((int)ly.size() < (int)lx.size()) ly.push_back(lx.back());
+        while ((int)ry.size() < (int)rx.size()) ry.push_back(lx.back());
+
+        T d = min(squaredClosestDC(lx, ly), squaredClosestDC(rx, ry));
+
+        vector<Point> strip;
+        for (const Point& p : py) {
+            if ((p.x - lx.back().x) * (p.x - lx.back().x) < d)
+                strip.push_back(p);
+        }
+        for (int i = 0; i < (int)strip.size(); i++) {
+            for (int j = i + 1; j < (int)strip.size() && (strip[j].y - strip[i].y) * (strip[j].y - strip[i].y) < d; j++) {
+                d = min(d, squaredDist(strip[j], strip[i]));
+            }
+        }
+        return d;
+    }
+
+    friend T squaredClosest(const vector<Point>& v) {
+        vector<Point> px(v);
+        vector<Point> py(v);
+        sort(px.begin(), px.end(), [](const Point& p1, const Point& p2) {
+            if (p1.x != p2.x) return p1.x < p2.x;
+            return p1.y < p2.y;
+        });
+        sort(py.begin(), py.end(), [](const Point& p1, const Point& p2) {
+            return p1.y < p2.y;
+        });
+        return squaredClosestDC(px, py);
     }
 
 };
