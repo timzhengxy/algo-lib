@@ -84,4 +84,48 @@ struct Graph {
         return d;
     }
 
+    void dfs(int u, vector<T>& d) const {
+        for (auto [v, w] : adj[u]) {
+            if (d[v] != numeric_limits<T>::min()) {
+                d[v] = numeric_limits<T>::min();
+                dfs(v, d);
+            }
+        }
+    }
+
+    vector<T> bellmanFord(int s) const {
+        vector<T> d(n, numeric_limits<T>::max());
+        d[s] = 0;
+        for (int i = 0; i < n - 1; i++) {
+            bool change = false;
+            for (int u = 0; u < n; u++) {
+                if (d[u] != numeric_limits<T>::max()) {
+                    for (auto [v, w] : adj[u]) {
+                        if (d[u] + w < d[v]) {
+                            d[v] = d[u] + w;
+                            change = true;
+                        }
+                    }
+                }
+            }
+            if (!change) break;
+        }
+        bool negCycle = false;
+        for (int u = 0; u < n; u++) {
+            if (d[u] != numeric_limits<T>::max()) {
+                for (auto [v, w] : adj[u]) {
+                    if (d[u] + w < d[v]) {
+                        negCycle = true;
+                        d[v] = numeric_limits<T>::min();
+                    }
+                }
+            }
+        }
+        if (!negCycle) return d;
+        for (int u = 0; u < n; u++) {
+            if (d[u] == numeric_limits<T>::min())
+                dfs(u, d);
+        }
+        return d;
+    }
 };
