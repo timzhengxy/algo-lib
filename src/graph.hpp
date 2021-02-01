@@ -128,4 +128,20 @@ struct Graph {
         }
         return d;
     }
+
+    static vector<vector<T>> floydWarshall(const vector<vector<T>>& a) {
+        vector<vector<T>> c(a);
+        int m = (int)a.size();
+        for (int k = 0; k < m; k++) {
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < m; j++) {
+                    if (c[i][k] != numeric_limits<T>::max() && c[k][j] != numeric_limits<T>::max()) {
+                        c[i][j] = min(c[i][j], c[i][k] + c[k][j]);
+                    }
+                }
+            }
+        }
+        return c;
+    }
+
 };
