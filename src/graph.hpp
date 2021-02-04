@@ -85,7 +85,7 @@ struct Graph {
     }
 
     void dfs(int u, vector<T>& d) const {
-        for (auto [v, w] : adj[u]) {
+        for (auto [v, _] : adj[u]) {
             if (d[v] != numeric_limits<T>::min()) {
                 d[v] = numeric_limits<T>::min();
                 dfs(v, d);
